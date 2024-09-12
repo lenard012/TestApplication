@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Orders";
+}
+
+<div class="col-md-12">
+    <div class="row">
+        <button type="button" id="btnAdd" class="btn btn-primary">Add New Order</button>
+    </div>
+    <div class="row">
+        <div class="table-responsive" style="padding:10px;">
+            <table id="tblOrder" style="width:100%" class="table table-bordered table-striped table-condensed flip-content table-hover tbl-result" data-adjust="-30"></table>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/jquery.dataTables.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/dataTables.bootstrap.min.js"></script>
+<script src="~/js/Order.js" asp-append-version="true"></script>
