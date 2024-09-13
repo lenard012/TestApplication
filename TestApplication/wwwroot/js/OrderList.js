@@ -1,11 +1,29 @@
 ﻿(function () {
     var tblOrderList = "";
     var UnitPrice = 0;
+    var ItemIDs = "";
     $(document).ready(function () {
+        var OrderID = 0;
+        var url = window.location.search;
 
-        DrawTable();
+        if (url != "") {
+            var urlParams = new URLSearchParams(url);
+            OrderID = urlParams.get("ID");
+            var CustomerID = urlParams.get("CID");
+            var Customer = urlParams.get("C");
+            var DD = urlParams.get("DD").split('/');
+            var Status = urlParams.get("S");
+            var newOption = new Option(Customer, CustomerID, false, false);
+            $('#Customer').append(newOption).trigger('change');
+            $("#DeliveryDate").val(DD[2] + '-' + DD[1] + '-' + DD[0]);
+            $("#Status").val(Status).trigger("change");
+        }
+
+        DrawTable(OrderID);
 
         $("#Product").select2({
+            
+
             ajax: {
                 url: "/Home/GetDropDown",
                 data: function (params) {
@@ -59,6 +77,7 @@
         $("#DeliveryDate").attr("min", today);
 
         $("#btnAdd").click(function () {
+            
             $("#mdlOrderList").modal("show");
         });
 
@@ -87,24 +106,65 @@
         });
 
         $("#btnSaveItem").click(function () {
+            var Total = 0;
             tblOrderList.row
                 .add({
-                    items: $("#Product").val(),
+                    itemID: $("#Product").val(),
+                    name: $("#Product").select2('data')[0].text,
                     quantity: $("#Quantity").val(),
                     amount: $("#Subtotal").val()
                 })
                 .draw();
+
+            var data = tblOrderList.rows().data();
+            data.each(function (value, index) {
+                Total = parseInt(Total) + parseInt(value.amount);
+            });
+            $("#Total").val(Total);
+
+            $("#mdlOrderList").modal("hide");
+        });
+
+        $("#btnSaveOrder").click(function () {
+            var ItemData = [];
+            var OrderData = {
+                ID: OrderID,
+                CustomerID: $("#Customer").val(),
+                DeliveryDate: $("#DeliveryDate").val(),
+                Status: $("#Status").val(),
+                Amount: $("#Total").val()
+            };
+            var tblData = tblOrderList.rows().data();
+            tblData.each(function (value, index) {
+                ItemData.push({
+                    ItemID: value.itemID,
+                    Quantity: value.quantity,
+                    Amount: value.amount
+                })
+            });
+
+            $.post("/Order/SaveOrder", {
+                ItemData: ItemData,
+                OrderData: OrderData
+            }, function (result) {
+                if (result.success) {
+                    window.location.href = '/Home/Order';
+                }
+
+                else
+                    alert(result.msg)
+            });
+
         });
 
     });
 
-    function DrawTable() {
-        var url = window.location.search;
-        var urlParams = new URLSearchParams(url);
-        var OrderID = urlParams.get("ID");
+    function DrawTable(OrderID) {
+        
+
         var Col = [
-            { title: "ID", data: "id", visible: false },
-            { title: "Items", data: "items" },
+            { title: "ID", data: "itemID", visible: false },
+            { title: "Items", data: "name" },
             { title: "Quantity", data: "quantity" },
             { title: "Amount", data: "amount" },
             { title: "", render: function () { return "<button type='button' class='btn btn-success btnEdit'>Edit</button>" } }

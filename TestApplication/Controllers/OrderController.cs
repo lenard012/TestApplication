@@ -44,8 +44,9 @@ namespace TestApplication.Controllers
                                 data.Add(new Order
                                 {
                                     ID = Convert.ToInt32(sdr["ID"]),
+                                    CustomerID = Convert.ToInt32(sdr["CustomerID"]),
                                     FullName = sdr["FullName"].ToString(),
-                                    DeliveryDate = sdr["DeliveryDate"].ToString(),
+                                    DeliveryDate = Convert.ToDateTime(sdr["DeliveryDate"]).ToString("dd/MM/yyyy"),
                                     Status = Convert.ToInt32(sdr["Status"]),
                                     Amount = Convert.ToDecimal(sdr["Amount"])
                                 });
@@ -71,7 +72,7 @@ namespace TestApplication.Controllers
             }
         }
         [HttpPost]
-        public ActionResult SaveOrder(Order data)
+        public ActionResult SaveOrder(Order OrderData, List<Order> ItemData)
         {
             try
             {
@@ -81,14 +82,46 @@ namespace TestApplication.Controllers
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.CommandText = data.ID == 0 ? "OrderCreate" : "OrderUpdate";
+                        cmd.CommandText = OrderData.ID == 0 ? "OrderCreate" : "OrderUpdate";
                         cmd.Parameters.Clear();
-                        cmd.Parameters.AddWithValue("@ID", data.ID);
-                        cmd.Parameters.AddWithValue("@Name", data.Name);
-                        cmd.Parameters.AddWithValue("@Code", data.Code);
-                        cmd.Parameters.AddWithValue("@UnitPrice", data.UnitPrice);
-                        cmd.Parameters.AddWithValue("@IsActive", data.IsActive);
+                        cmd.Parameters.AddWithValue("@ID", OrderData.ID);
+                        cmd.Parameters.AddWithValue("@CustomerID", OrderData.CustomerID);
+                        cmd.Parameters.AddWithValue("@DeliveryDate", OrderData.DeliveryDate);
+                        cmd.Parameters.AddWithValue("@Status", OrderData.Status);
+                        cmd.Parameters.AddWithValue("@Amount", OrderData.Amount);
+
+                        SqlParameter OrderID = cmd.Parameters.Add("@OrderID", SqlDbType.Int);
+                        OrderID.Direction = ParameterDirection.Output;
+
                         cmd.ExecuteNonQuery();
+                        int i = 0;
+                        foreach (Order x in ItemData)
+                        {
+                            
+                            try
+                            {
+                                cmd.CommandType = CommandType.StoredProcedure;
+                                cmd.CommandText = "OrderListCreate";
+                                cmd.Parameters.Clear();
+                                cmd.Parameters.AddWithValue("@OrderID", Convert.ToInt32(OrderID.Value));
+                                cmd.Parameters.AddWithValue("@ItemID", x.ItemID);
+                                cmd.Parameters.AddWithValue("@Quantity", x.Quantity);
+                                cmd.Parameters.AddWithValue("@Amount", x.Amount);
+                                cmd.Parameters.AddWithValue("@i", i);
+                                cmd.ExecuteNonQuery();
+
+                                i++;
+                            }
+                            catch (Exception err)
+                            {
+                                throw new InvalidOperationException(err.Message);
+                            }
+                            finally
+                            {
+
+                                cmd.Dispose();
+                            }
+                        }
 
                         conn.Close();
                         return Json(new { success = true });
@@ -122,11 +155,10 @@ namespace TestApplication.Controllers
                             {
                                 data.Add(new Order
                                 {
-                                    ID = Convert.ToInt32(sdr["ID"]),
-                                    FullName = sdr["FullName"].ToString(),
-                                    DeliveryDate = sdr["DeliveryDate"].ToString(),
-                                    Status = Convert.ToInt32(sdr["Status"]),
-                                    Amount = Convert.ToDecimal(sdr["Amount"])
+                                    ItemID = Convert.ToInt32(sdr["ItemID"]),
+                                    Name = sdr["Name"].ToString(),
+                                    Quantity = Convert.ToInt32(sdr["Quantity"]),
+                                    Amount = Convert.ToDecimal(sdr["Price"])
                                 });
                             }
 

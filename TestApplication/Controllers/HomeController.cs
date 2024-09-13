@@ -51,6 +51,7 @@ namespace TestApplication.Controllers
             string id = Request.Query["id"];
             string text = Request.Query["text"];
             string table = Request.Query["table"];
+            string condition = Request.Query["condition"];
             string coldata = String.IsNullOrEmpty(Request.Query["ColData"]) ? "" : Request.Query["ColData"];
             ArrayList results = new ArrayList();
             try
@@ -65,7 +66,7 @@ namespace TestApplication.Controllers
                             cmdSql.CommandType = CommandType.Text;
                             cmdSql.CommandText = " SELECT " + id + " AS id," + text + " AS text " + coldata +
                                                       " FROM " + table +
-                                                      " WHERE (" + id + " like '%" + val + "%' OR " + text + " like '%" + val + "%') AND IsActive = 1" +
+                                                      " WHERE (" + id + " like '%" + val + "%' OR " + text + " like '%" + val + "%') AND IsActive = 1" + condition +
                                                      " ORDER BY " + text +";";
                             using (SqlDataReader sdr = cmdSql.ExecuteReader())
                             {

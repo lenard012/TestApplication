@@ -39,11 +39,12 @@
     function DrawTable() {
         var Col = [
             { title: "ID", data: "id", visible: false },
+            { title: "CustomerID", data:"customerID", visible: false},
             { title: "Customer", data: "fullName" },
             { title: "Delivery Date", data: "deliveryDate" },
             { title: "Status", data: "status" },
             { title: "Amount", data: "amount" },
-            { title: "", render: function () { return "<button type='button' class='btn btn-success btnEdit'>Edit</button>" } }
+            { title: "", render: function (meta,row,data) { return "<button type='button' class='btn btn-success btnEdit'>Edit</button>" } }
         ];
 
         if (!$.fn.DataTable.isDataTable('#tblOrder')) {
@@ -64,7 +65,7 @@
                 "initComplete": function () {
                     tblOrder.on('click', '.btnEdit', function (e) {
                         let data = tblOrder.row(e.target.closest('tr')).data();
-                        window.location.href = "/Home/OrderList?ID=" + data.id;
+                        window.location.href = "/Home/OrderList?ID=" + data.id + "&CID=" + data.customerID + "&C=" + data.fullName + "&DD=" + data.deliveryDate + "&S=" + data.status;
                     });
                 }
 
